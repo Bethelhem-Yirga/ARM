@@ -1,12 +1,12 @@
 # RASPBERRY PI ON QEMU
 
-1.​ Download raspbian jessie image : https://downloads.raspberrypi.org/raspbian/images/raspbian-2017-04-10/
-2.​ Unzip .zip file to get raspbian image
-3.​ Download latest qemu kernel: https://github.com/dhruvvyas90/qemu-rpi-kernel
-4.​ Create new folder : $ mkdir ~/qemu_vms/
-5.​ Move raspbian image and qemu kernel to ~/qemu_vms/
-6.​ $ sudo apt-get install qemu-system
-7.​ fdisk -l 2017-04-10-raspbian-jessie.img
+1. Download raspbian jessie image : https://downloads.raspberrypi.org/raspbian/images/raspbian-2017-04-10/
+2. Unzip .zip file to get raspbian image
+3. ​ Download latest qemu kernel: https://github.com/dhruvvyas90/qemu-rpi-kernel
+4. Create new folder : $ mkdir ~/qemu_vms/
+5. ​ Move raspbian image and qemu kernel to ~/qemu_vms/
+6. ​ $ sudo apt-get install qemu-system
+7. ​ fdisk -l 2017-04-10-raspbian-jessie.img
 
 ![alt text](../screenshots/fdisk.png)
 
