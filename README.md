@@ -511,6 +511,7 @@ cat /proc/sys/kernel/randomize_va_space
 ## Phase 1: Understanding the Vulnerability
 
 ### The Vulnerable Code
+File: C/buffer_overflow/Stack_overflow/ROP/challenge1.c
 ```bash
 void func1(char *input) {
     char buffer[64];       // 64-byte buffer
@@ -532,8 +533,8 @@ sub r3, r11, #68    ← buffer starts at r11 - 68
 Offset = 68 bytes
 
 ## Phase 3: Locating Useful Code (Gadgets)
-Goal
 
+**Goal**
 Find gadgets and functions in libc that will let us call system("/bin/sh").
 
 ### Step 3.1: Find libc Base Address
