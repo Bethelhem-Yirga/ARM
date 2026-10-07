@@ -673,7 +673,7 @@ python exploit.py
 
 ## Overview
 
-This project demonstrates **process continuation** — the art of keeping a process alive after exploiting it. We build a working buffer overflow exploit against a custom ARM server, spawn a reverse shell, and then return the server to its normal operation **without crashing**.
+This project demonstrates **process continuation** — the art of keeping a process alive after exploiting it. I build a working buffer overflow exploit against a custom ARM server, spawn a reverse shell, and then return the server to its normal operation **without crashing**.
 
 ## What is Process Continuation?
 
@@ -683,7 +683,7 @@ When you exploit a buffer overflow, you typically overwrite the return address o
 2. The return address is garbage
 3. Saved registers are wrong
 
-**Process continuation** means: before returning control to the process, you **clean up** — restore the stack, fix registers, and jump back to a safe point in the program. The process continues as if nothing happened.
+**Process continuation means:** before returning control to the process, you **clean up** — restore the stack, fix registers, and jump back to a safe point in the program. The process continues as if nothing happened.
 
 ### Why This Matters
 
