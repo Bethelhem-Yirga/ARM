@@ -25,9 +25,10 @@ A personal knowledge base for learning ARM 32-bit exploitation — from setup to
 5. [Bind Shell](#5-bind-shell)
 6. [Reverse Shell](#6-reverse-shell)
 7. [ROP Exploit](#7-rop-exploit)
+8. [Process Continuation](#8-process-continuation)
 
 ### Reference 
-8. [References](#8-references)
+9. [References](#9-references)
 
 
 
@@ -664,9 +665,147 @@ python exploit.py
 
 # 4. You now have a shell!
 ```
+# 8. Process Continuation
 
-## Key Learnings
-### Technical Concepts
+## ARM Reverse Shell with Process Continuation
+
+**A hands-on exploit development project on Raspberry Pi (ARMv6l)**
+
+## Overview
+
+This project demonstrates **process continuation** — the art of keeping a process alive after exploiting it. We build a working buffer overflow exploit against a custom ARM server, spawn a reverse shell, and then return the server to its normal operation **without crashing**.
+
+## What is Process Continuation?
+
+When you exploit a buffer overflow, you typically overwrite the return address on the stack to redirect execution to your shellcode. After the shellcode runs, the process usually **crashes** because:
+
+1. The stack is corrupted
+2. The return address is garbage
+3. Saved registers are wrong
+
+**Process continuation** means: before returning control to the process, you **clean up** — restore the stack, fix registers, and jump back to a safe point in the program. The process continues as if nothing happened.
+
+### Why This Matters
+
+- **Stealth**: A crash is noisy. A running process is silent.
+- **Persistence**: Watchdog processes won't restart a service that hasn't crashed.
+- **Kernel exploitation**: A crash in kernel mode means a Blue Screen / Kernel Panic.
+
+## The Vulnerable Program
+File: C/buffer_overflow/Process_continution/server.c
+
+```bash c
+void process_request(char *input) {
+    char buffer[16];              // 16-byte buffer
+    printf("[Server] Processing request: %s\n", input);
+    strcpy(buffer, input);        // VULNERABLE: no bounds check
+    printf("[Server] Request processed.\n");
+}
+```
+**The bug:** strcpy copies input into a 16-byte stack buffer without checking length. Input longer than ~20 bytes overflows into saved registers and the return address.
+
+## Exploit Development Steps
+
+### 1. Finding the Offset
+Offset = 20 (16 bytes buffer + 4 bytes saved r11)
+
+### 2. Finding the Shellcode Address
+```bash
+nm server | grep shellcode_start
+# Output: 0001080c T shellcode_start
+```
+![alt text](/screenshots/nm.png)
+
+### 3. The Exploit Script
+**File:** Exploit_Scripts/process_cont_exploit.py
+
+### 4. Shellcode
+**File:** assembly/revshell_cont.s
+
+**The shellcode does six things:**
+
+1. Create a socket — socket(AF_INET, SOCK_STREAM, 0)
+
+2. Connect back to 127.0.0.1:4444
+
+3. Fork — parent waits, child runs the shell
+
+4. dup2 — redirect socket to stdin/stdout/stderr
+
+5. execve("/bin/sh") — spawn the shell
+
+6. Clean up and return to server_loop
+
+### 5. Building
+```bash
+# Compile server to object
+gcc -c server.c -o server.o -fno-stack-protector -z execstack -marm
+
+# Assemble shellcode
+as -o revshell_cont.o revshell_cont.s
+
+# Link
+gcc -o server server.o revshell_cont.o -fno-stack-protector -z execstack -marm
+
+# Get shellcode address
+nm server | grep shellcode_start
+```
+
+## Running the Exploit
+### Three terminals are needed
+
+**Terminal 1 — Listener:**
+
+```bash
+nc -lvnp 4444
+```
+![alt text](/screenshots/listner1.png)
+
+**Terminal 2 — Server:**
+
+```bash
+./server
+```
+![alt text](/screenshots/server.png)
+
+**Terminal 3 — Exploit:**
+
+```bash
+python3 process_cont_exploit.py
+```
+![alt text](/screenshots/payload.png)
+
+## Tools Used
+```bash
+Tool	    Purpose
+gcc	        Compile C to object files
+as	        GNU assembler for ARM
+gdb	        Debugger — inspect registers, find crashes
+nm	        List symbols and addresses
+nc	        Netcat — listener for reverse shell
+python3	    Exploit script
+```
+
+## Files in This Project
+```bash
+File	                       Description
+server.c	                   Vulnerable server source code
+revshell_cont.s	               ARM assembly shellcode with process continuation
+process_cont_exploit.py        Python exploit script
+```
+
+## Final Result
+Working reverse shell over the network
+
+Full remote command execution
+
+Server continues running after exploitation
+
+Process continuation demonstrated on ARMv6
+
+
+# Key Learnings
+## Technical Concepts
 Stack buffer overflow — overwriting the return address to control program flow
 
 XN mitigation — non-executable stack prevents shellcode execution
@@ -690,7 +829,7 @@ strings + grep — finding strings in binaries
 
 struct.pack — writing binary payloads in Python
 
-# 8. References
+# 9. References
 Azeria Labs: Process Memory and Memory Corruption
 
 Azeria Labs: ARM Assembly Basics
@@ -702,3 +841,5 @@ Azeria Labs: Return-Oriented Programming (ARM32)
 Azeria Labs: Stack Overflows on ARM32
 
 Azeria Labs: Writing ARM Shellcode
+
+Azeria Labs: Process Continuation Shellcode
